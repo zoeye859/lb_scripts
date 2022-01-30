@@ -535,15 +535,17 @@ plot_wcs    = args['plot']
 plot_pix    = args['plot_pix']
 print (plot_wcs, plot_pix)
 
-hdul        = fits.open(FITSscreen)
-fits_data   = hdul[0].data
-fits_header = hdul[0].header
+if FITSscreen is not None:
+    hdul        = fits.open(FITSscreen)
+    fits_data   = hdul[0].data
+    fits_header = hdul[0].header
+    centre_RA, centre_DEC = get_field_centre(fits_header)
 
+
+print ('The current directory is ', PATH, 'in order to change the running directory, please change value of PATH in this script.')
 
 antenna = get_antenna_names(h5file)
 
-if FITSscreen is not None:
-    centre_RA, centre_DEC = get_field_centre(fits_header)
 
 dir_array, dir_tag, dir_x, dir_y, dir_x_deg, dir_y_deg = get_direction(h5file)
 dir_xy = np.column_stack((dir_tag, dir_x_deg, dir_y_deg))
@@ -558,14 +560,16 @@ if plot_wcs == True:
 if plot_pix == True:
     plot_screen(fits_data, fits_header, size, antenna)
 
-plot_directions(h5file, centre_RA, centre_DEC, boxwidth)
 
 
-
-
-print ('The direction and its corresponding .h5 file:\n')
+print ('The direction and its corresponding .h5 file:')
 dir_h5 = dir_h5_file(h5file_ind)
-print ('This list is saved in screen_plots/h5_names.txt.')
+print (dir_h5)
+print ('\n This list is saved in screen_plots/h5_names.txt.')
 
+if centre_RA == 0 and centre_DEC == 0:
+    raise Exception("No direction plot will be plotted, because the phase centre is not specified, you can either feed a .fits screen, or use --RA and --DEC to directly feed the phase centre in degrees")
+
+plot_directions(h5file, centre_RA, centre_DEC, boxwidth)
 #dir_x_pix, dir_y_pix, dir_tag_num = deg2pix(h5file, boxwidth, size)
 #print (dir_x_pix, dir_y_pix, dir_tag_num)
