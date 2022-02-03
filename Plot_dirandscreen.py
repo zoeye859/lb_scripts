@@ -18,6 +18,8 @@ from shutil import copyfile, rmtree
 PATH = str(Path().absolute()).split("\/")[0] # Directory of current working directory
 dir_path = PATH + '/screen_plots/'
 ext_scale = 1.5 #make the screen 1.5 times bigger than the given boxwidth
+if os.path.exists(dir_path)==False:
+    os.mkdir(dir_path)
 
 def plot_screen_wcs(fits_data, fits_header, size, antenna, time_slot = 10, freq_slot = 2):
     '''
@@ -30,8 +32,7 @@ def plot_screen_wcs(fits_data, fits_header, size, antenna, time_slot = 10, freq_
     time_slot: int, default 11th time_slot
     freq_slot: int, default 3th frequency slot
     '''
-    if os.path.exists(dir_path)==False:
-        os.mkdir(dir_path)
+    
     fig = plt.figure(figsize=(21, 9))
     wcs = WCS(fits_header, naxis = 2)
     image_data = fits_data[time_slot,freq_slot,:,:,:,:]
@@ -164,8 +165,7 @@ def plot_screen(fits_data, fits_header, size, antenna, time_slot = 10, freq_slot
     time_slot: int, default 11th time_slot
     freq_slot: int, default 3th frequency slot
     '''
-    if os.path.exists(dir_path)==False:
-        os.mkdir(dir_path)
+    
     fig = plt.figure(figsize=(21, 9))
     image_data = fits_data[time_slot,freq_slot,:,:,:,:]
     title_list = ['XX real', 'XX imaginary', 'YY real', 'YY imaginary', 'XX phase',
@@ -382,9 +382,14 @@ def get_antenna_names(h5file):
     H = tables.open_file(h5file)
     antenna_list = H.root.sol000.antenna[:]
     antenna_num = len(antenna_list)
+    if antenna_num == 0:
+      antenna = H.root.sol000.phase000.ant[:].tolist()
+      antenna_num = len(antenna)
+    else:
+      antenna = [antenna_list[i][0] for i in range(antenna_num)]      
     print ('There are ' + str(antenna_num) + 'remote/international stations.\n')
-    print ('The input h5parm contains the following antenna info:\n', antenna_list)
-    antenna = [antenna_list[i][0] for i in range(antenna_num)]
+    print ('The input h5parm contains the following antenna info:\n', antenna)
+    
     H.close()
     return [str(ant).split("\'")[1] for ant in antenna]
 
@@ -540,7 +545,7 @@ if FITSscreen is not None:
     fits_data   = hdul[0].data
     fits_header = hdul[0].header
     centre_RA, centre_DEC = get_field_centre(fits_header)
-
+    print ('The phase centre in degrees are: ', str(centre_RA) + ', ' + str(centre_DEC))
 
 print ('The current directory is ', PATH, 'in order to change the running directory, please change value of PATH in this script.')
 
@@ -554,18 +559,18 @@ print ('There are ' + str(len(dir_array)) + ' directions.')
 print ('These directions are:\n', dir_array)
 print ('In degrees are:\n', dir_xy)
 
-if plot_wcs == True:
+if plot_wcs: 
     plot_screen_wcs(fits_data, fits_header, size, antenna)
 
-if plot_pix == True:
+if plot_pix:
     plot_screen(fits_data, fits_header, size, antenna)
 
 
-
-print ('The direction and its corresponding .h5 file:')
-dir_h5 = dir_h5_file(h5file_ind)
-print (dir_h5)
-print ('\n This list is saved in screen_plots/h5_names.txt.')
+if h5file_ind is not None:
+    print ('The direction and its corresponding .h5 file:')
+    dir_h5 = dir_h5_file(h5file_ind)
+    print (dir_h5)
+    print ('\n This list is saved in screen_plots/h5_names.txt.')
 
 if centre_RA == 0 and centre_DEC == 0:
     raise Exception("No direction plot will be plotted, because the phase centre is not specified, you can either feed a .fits screen, or use --RA and --DEC to directly feed the phase centre in degrees")
