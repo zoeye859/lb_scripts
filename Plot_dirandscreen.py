@@ -32,15 +32,15 @@ def plot_screen_wcs(fits_data, fits_header, size, antenna, time_slot = 10, freq_
     time_slot: int, default 11th time_slot
     freq_slot: int, default 3th frequency slot
     '''
-    
+
     fig = plt.figure(figsize=(21, 9))
-    wcs = WCS(fits_header, naxis = 2)
+    #wcs = WCS(fits_header, naxis = 2)
     image_data = fits_data[time_slot,freq_slot,:,:,:,:]
     title_list = ['XX real', 'XX imaginary', 'YY real', 'YY imaginary', 'XX phase',
      'XX amplitude', 'YY phase', 'YY amplitude']
     position = (size/2, size/2) # image centre
     cutout = Cutout2D(image_data[0,0,:,:], position, (size/ext_scale, size/ext_scale))# show the boxwidth size
-    dir_x_pix, dir_y_pix, dir_tag_num = deg2pix(h5file, boxwidth, size, centre_RA, centre_DEC) # convert direction into pixels
+    dir_x_pix, dir_y_pix, dir_tag_num = deg2pix(h5file, wcs) # convert direction into pixels
 
     ## plot the screen for one of the core stations, all core stations' screen should be
     #identical
@@ -165,12 +165,12 @@ def plot_screen(fits_data, fits_header, size, antenna, time_slot = 10, freq_slot
     time_slot: int, default 11th time_slot
     freq_slot: int, default 3th frequency slot
     '''
-    
+
     fig = plt.figure(figsize=(21, 9))
     image_data = fits_data[time_slot,freq_slot,:,:,:,:]
     title_list = ['XX real', 'XX imaginary', 'YY real', 'YY imaginary', 'XX phase',
      'XX amplitude', 'YY phase', 'YY amplitude']
-    dir_x_pix, dir_y_pix, dir_tag_num = deg2pix(h5file, boxwidth, size, centre_RA, centre_DEC) # convert direction into pixels
+    dir_x_pix, dir_y_pix, dir_tag_num = deg2pix(h5file, wcs) # convert direction into pixels
 
     ## plot the screen for one of the core stations, all core stations' screen should be
     #identical
@@ -297,7 +297,33 @@ def plot_screen(fits_data, fits_header, size, antenna, time_slot = 10, freq_slot
         plt.close()
 
 
-def plot_directions(h5file, centre_RA, centre_DEC, boxwidth):
+def plot_directions_deg(h5file, centre_RA, centre_DEC, boxwidth):
+    '''
+    plot the directions with RA and DEC in degrees
+
+    fits_header: the header of the .fits file, to take the phase centre values
+    h5file: str, input merged h5parm name
+    direction_array: numpy array, output of the get_direction function
+    '''
+    dir_array, dir_tag, dir_x, dir_y, dir_x_deg, dir_y_deg = get_direction(h5file)
+    fig = plt.figure(figsize=(8, 8))
+    ax = plt.subplot(111)
+    ax.scatter(dir_x_deg, dir_y_deg)
+    for i, txt in enumerate(dir_tag):
+        plt.annotate(txt, (dir_x_deg[i], dir_y_deg[i]))
+    ax.set_xlabel('RA (deg)')
+    ax.set_ylabel('Dec (deg)')
+    ax.set_title('Direction Plot (in degree), boxwidth='+ str(boxwidth))
+    ax.scatter(centre_RA, centre_DEC)
+    plt.annotate('centre', (centre_RA, centre_DEC))
+    ax.set_xlim([centre_RA - boxwidth, centre_RA + boxwidth])
+    ax.set_ylim([centre_DEC - boxwidth, centre_DEC + boxwidth])
+    ax.set_aspect(1)
+    ax.invert_xaxis()
+    plt.savefig(dir_path + 'Direction_plot_deg.png', bbox_inches='tight')
+    plt.show()
+
+def plot_directions_wcs(h5file, centre_RA, centre_DEC, boxwidth):
     '''
     plot the directions within the wcs framework
 
@@ -305,33 +331,26 @@ def plot_directions(h5file, centre_RA, centre_DEC, boxwidth):
     h5file: str, input merged h5parm name
     direction_array: numpy array, output of the get_direction function
     '''
-    dir_array, dir_tag, dir_x, dir_y, dir_x_deg, dir_y_deg = get_direction(h5file)
-    fig, ax = plt.subplots(figsize=(8, 8))
-    ax.scatter(dir_x_deg, dir_y_deg)
-    for i, txt in enumerate(dir_tag):
-        plt.annotate(txt, (dir_x_deg[i], dir_y_deg[i]))
-    ax.set_xlabel('RA (deg)')
-    ax.set_ylabel('Dec (deg)')
-    ax.set_title('Direction Plot')
-    ax.scatter(centre_RA, centre_DEC)
+    dir_x_pix, dir_y_pix, dir_tag_num = deg2pix(h5file, wcs)
+    centre_RA_pix, centre_DEC_pix = wcs.wcs_world2pix(centre_RA, centre_DEC, 0)
+    fig = plt.figure(figsize=(8, 8))
+    ax = plt.subplot(1,1,1, projection=wcs)
+    ax.set_title('Direction Plot (wcs), boxwidth='+ str(boxwidth))
+    ax.set_xlabel('Right Ascension (J2000)')
+    ax.set_ylabel('Declination (J2000)')
+    ax.grid(alpha=0.6)
+    ax.scatter(centre_RA_pix, centre_DEC_pix)
     plt.annotate('centre', (centre_RA, centre_DEC))
-    #draw_circle1 = plt.Circle((centre_RA, centre_DEC), boxwidth/2, fill=False)
-    #draw_circle2 = plt.Circle((centre_RA, centre_DEC), boxwidth/2*ext_scale, fill=False)
-    ax.set_xlim([centre_RA - boxwidth, centre_RA + boxwidth])
-    ax.set_ylim([centre_DEC - boxwidth, centre_DEC + boxwidth])
-    ax.set_aspect(1)
-    #ax.add_artist(draw_circle1)
-    #ax.add_artist(draw_circle2)
-    rect1 = Rectangle((centre_RA - boxwidth*ext_scale/2,centre_DEC - boxwidth*ext_scale/2),boxwidth*ext_scale,boxwidth*ext_scale,linewidth=1,edgecolor='b',facecolor='none', alpha = 0.5)
-    rect2 = Rectangle((centre_RA - boxwidth/2,centre_DEC - boxwidth/2),boxwidth,boxwidth,linewidth=1,edgecolor='b',facecolor='none', alpha = 0.2)
+    ax.scatter(dir_x_pix, dir_y_pix, facecolors='none', s = 5, edgecolor = 'r')
+    for idx, txt in enumerate(dir_tag_num):
+        ax.text(dir_x_pix[idx], dir_y_pix[idx], txt, style ='italic', color ="r")
+    rect1 = Rectangle((size//2 - size/2,size//2 - size/2),size,size,linewidth=1,edgecolor='b',facecolor='none', alpha = 0.5)
+    rect2 = Rectangle((size//2 - size/ext_scale/2,size//2 - size/ext_scale/2),size/ext_scale,size/ext_scale,linewidth=1,edgecolor='b',facecolor='none', alpha = 0.2)
     ax.add_patch(rect1)
     ax.add_patch(rect2)
-    ax.invert_xaxis()
-    #ax.annotate(str(boxwidth)+' region', (centre_RA,centre_DEC + boxwidth/2))
-    #ax.annotate(str(boxwidth)+'1.5 region', (centre_RA,centre_DEC + boxwidth*1.5/2))
-    plt.savefig(dir_path + 'Direction_plot.png', bbox_inches='tight')
+    ax.set_aspect(1)
+    plt.savefig(dir_path + 'Direction_plot_wcs.png')
     plt.show()
-
 
 def select_direction2remove(dir_num, remove_num, random_t = True, remove_list_manual = []):
     '''
@@ -351,7 +370,7 @@ def select_direction2remove(dir_num, remove_num, random_t = True, remove_list_ma
     print ('You are removing ' + str(len(remove_list)) + ' directions, they are: ', remove_list)
     return remove_list
 
-def deg2pix(h5file, boxwidth, size, centre_RA, centre_DEC):
+def deg2pix_old(h5file, boxwidth, size, centre_RA, centre_DEC):
     '''
     convert degrees to pixels in the screen image plane
     dir_x_pix: float list - dirction RAs in pixels
@@ -365,6 +384,25 @@ def deg2pix(h5file, boxwidth, size, centre_RA, centre_DEC):
     dir_y_pix = [(y - ref_pos_DEC)* size/ext_scale/boxwidth for y in dir_y_deg]
     dir_tag_num = [re.split('(\d+)', tag)[1] for tag in dir_tag]
     return dir_x_pix, dir_y_pix, dir_tag_num
+
+def deg2pix(h5file, wcs):
+    '''
+    convert degrees to pixels in the screen image plane using wcs function
+    dir_x_pix: float list - dirction RAs in pixels
+    dir_y_pix: float list - dirction DECs in pixels
+    dir_tag_num: string list - direction tags only in number
+    '''
+    dir_x_pix = []
+    dir_y_pix = []
+    dir_array, dir_tag, dir_x, dir_y, dir_x_deg, dir_y_deg = get_direction(h5file)
+    for i in range(len(dir_x_deg)):
+        X= wcs.wcs_world2pix(dir_x_deg[i], dir_y_deg[i], 0)[0].tolist()
+        Y= wcs.wcs_world2pix(dir_x_deg[i], dir_y_deg[i], 0)[1].tolist()
+        dir_x_pix+=[X]
+        dir_y_pix+=[Y]
+    dir_tag_num = [re.split('(\d+)', tag)[1] for tag in dir_tag]
+    return dir_x_pix, dir_y_pix, dir_tag_num
+
 
 def get_antenna_names(h5file):
     '''
@@ -386,10 +424,9 @@ def get_antenna_names(h5file):
       antenna = H.root.sol000.phase000.ant[:].tolist()
       antenna_num = len(antenna)
     else:
-      antenna = [antenna_list[i][0] for i in range(antenna_num)]      
-    print ('There are ' + str(antenna_num) + 'remote/international stations.\n')
+      antenna = [antenna_list[i][0] for i in range(antenna_num)]
+    print ('There are ' + str(antenna_num) + ' remote/international stations.\n')
     print ('The input h5parm contains the following antenna info:\n', antenna)
-    
     H.close()
     return [str(ant).split("\'")[1] for ant in antenna]
 
@@ -508,6 +545,64 @@ def deg2HMS(deg_input, decimal_num=2):
         second_dec *= 10**decimal_num
         return '%02d%02d%02d' % (hour, minute, second_int) + '.' + format_str % (second_dec)
 
+def create_fits_wcs(h5file, boxwidth, size, antenna):
+    '''
+    decimal degree to hour minute second
+
+    wcs_fits: the wcs of the gain screen .fits file if there no .fits file input
+    '''
+    H = tables.open_file(h5file)
+    time = H.root.sol000.amplitude000.time[:]
+    stime = time[0]
+    dtime = time[1] - time[0]
+    freq = H.root.sol000.amplitude000.freq[:]
+    sfreq = freq[0]
+    dfreq = freq[1] - freq[0]
+    H.close()
+    cdelt = np.float(boxwidth)*ext_scale/np.float(size)
+    cdelt1 = -1.*cdelt
+    cdelt2 = cdelt
+    Ntimes = len(time)
+    Nfreqs = len(freq)
+    # header
+    header='''SIMPLE  =                    T / file does conform to FITS standard
+BITPIX  =                  -32 / number of bits per data pixel
+NAXIS   =                    6 / number of data axes
+NAXIS1  =                 {nsizex:d} / length of RA axis
+NAXIS2  =                 {nsizey:d} / length of DEC axis
+NAXIS3  =                   4
+NAXIS4  =                   {nant:d} / length of ANTENNA axis
+NAXIS5  =                    1 / length of FREQ axis
+NAXIS6  =                   {ntimes:d} / length of TIME axis
+EXTEND  =                    T / FITS dataset may contain extensions
+CTYPE1  = 'RA---SIN'           / Right ascension angle cosine
+CRPIX1  =                 {crpix1:f}
+CRVAL1  =          {ra:f}
+CDELT1  =              {cdelt1:f}
+CUNIT1  = 'deg     '
+CTYPE2  = 'DEC--SIN'           / Declination angle cosine
+CRPIX2  =                  {crpix2:f}
+CRVAL2  =     {dec:f}
+CDELT2  =              {cdelt2:f}
+CUNIT2  = 'deg     '
+CTYPE3  = 'MATRIX  '
+CRPIX3  =                   1.
+CDELT3  =                   1.
+CTYPE4  = 'ANTENNA '
+CRPIX4  =                   1.
+CRVAL4  =                   0.
+CTYPE5  = 'FREQ    '           / Central frequency
+CRPIX5  =                   1.
+CRVAL5  =     {cfreq:f}
+CDELT5  =         {dfreq:f}
+CUNIT5  = 'Hz      '
+CTYPE6  = 'TIME    '
+CRPIX6  =                   1.
+CRVAL6  =                   {stime:f} / Should be an AIPS time
+CDELT6  =                  {dtime:f}'''.format(nsizex=size, nsizey=size, nant=len(antenna), ntimes=Ntimes+1, crpix1=np.float(size)/2., ra=centre_RA,cdelt1=cdelt1, crpix2=np.float(size)/2., dec=centre_DEC,cdelt2=cdelt2, cfreq=sfreq, dfreq=dfreq, stime=stime, dtime=dtime)
+    H_fits = fits.Header.fromstring(header, sep='\n')
+    wcs_fits = WCS(H_fits).celestial
+    return wcs_fits
 
 parser = argparse.ArgumentParser(description='1) Plot directions of your merged .h5 file;\n \
                                 2) plot existing screen files w/o wcs frames; \n 3) find direction and its corresponding .h5 file name. \n \
@@ -538,18 +633,23 @@ centre_RA   = args['RA']
 centre_DEC  = args['DEC']
 plot_wcs    = args['plot']
 plot_pix    = args['plot_pix']
-print (plot_wcs, plot_pix)
-
-if FITSscreen is not None:
-    hdul        = fits.open(FITSscreen)
-    fits_data   = hdul[0].data
-    fits_header = hdul[0].header
-    centre_RA, centre_DEC = get_field_centre(fits_header)
-    print ('The phase centre in degrees are: ', str(centre_RA) + ', ' + str(centre_DEC))
+print ('Plotting screen within wcs framework?\n', plot_wcs, 'Plotting screen with pixel axises?\n', plot_pix)
 
 print ('The current directory is ', PATH, 'in order to change the running directory, please change value of PATH in this script.')
 
 antenna = get_antenna_names(h5file)
+if FITSscreen is not None:
+    hdul        = fits.open(FITSscreen)
+    fits_data   = hdul[0].data
+    fits_header = hdul[0].header
+    wcs = WCS(fits_header, naxis = 2)
+    centre_RA, centre_DEC = get_field_centre(fits_header)
+    print ('The phase centre in degrees are: ', str(centre_RA) + ', ' + str(centre_DEC))
+
+if FITSscreen is None:
+    print ('No screen .fits file found.')
+    print ('The phase centre in degrees are: ', str(centre_RA) + ', ' + str(centre_DEC))
+    wcs = create_fits_wcs(h5file, boxwidth, size, antenna)
 
 
 dir_array, dir_tag, dir_x, dir_y, dir_x_deg, dir_y_deg = get_direction(h5file)
@@ -559,7 +659,7 @@ print ('There are ' + str(len(dir_array)) + ' directions.')
 print ('These directions are:\n', dir_array)
 print ('In degrees are:\n', dir_xy)
 
-if plot_wcs: 
+if plot_wcs:
     plot_screen_wcs(fits_data, fits_header, size, antenna)
 
 if plot_pix:
@@ -575,6 +675,7 @@ if h5file_ind is not None:
 if centre_RA == 0 and centre_DEC == 0:
     raise Exception("No direction plot will be plotted, because the phase centre is not specified, you can either feed a .fits screen, or use --RA and --DEC to directly feed the phase centre in degrees")
 
-plot_directions(h5file, centre_RA, centre_DEC, boxwidth)
+plot_directions_deg(h5file, centre_RA, centre_DEC, boxwidth)
+plot_directions_wcs(h5file, centre_RA, centre_DEC, boxwidth)
 #dir_x_pix, dir_y_pix, dir_tag_num = deg2pix(h5file, boxwidth, size)
 #print (dir_x_pix, dir_y_pix, dir_tag_num)
