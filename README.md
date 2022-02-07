@@ -54,8 +54,10 @@ python3 Plot_dirandscreen.py --H5file h5file --H5file_ind merged_selfcalcyle
 
 where 'merged_selfcalcycle' are the first series of letters of the individual h5 parms that can be distinguished from other h5parms. A h5_names.txt file would be created under the screen_plots directory as well. Its content includes lists similar to this:
 
+```
 [0, '161057.22+553518.10', 'merged_selfcalcyle003_ILTJ161057.72+553527.9_concat.ms.avg.h5'], 
+```
 
-meaning Dir00 is at 161057.22+553518.10, the h5parm containing this direction is named as 161057.22+553518.10
+meaning Dir00 is at 161057.22+553518.10, the h5parm containing this direction is named as 'merged_selfcalcyle003_ILTJ161057.72+553527.9_concat.ms.avg.h5'.
 
 
