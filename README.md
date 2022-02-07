@@ -25,10 +25,11 @@ python3 Plot_dirandscreen.py --H5file merged_FILE_name.h5 --RA 242.75 --DEC 54.9
 ```
 where --RA and --DEC is the field centre, so you don’t have to feed a .ms file or a screen .fits file.
 
-You will get two direction plots, one in degrees, one in wcs framework
+You will get two direction plots, one in degrees, one in wcs framework. Here is an example:
 
+
+![Here is an example for Direction_plot_wcs.png:](examples/Direction_plot_wcs.png)
 ![Here is an example for Direction_plot_deg.png:](examples/Direction_plot_deg.png)
-![Here is an example for Direction_plot_wcs.png:](examples/Direction_plot_deg.png)
 
 2) After making your screen:
 
@@ -37,7 +38,11 @@ python3 last_version.py --FITSscreen gainscreen_rbf_2.5.fits --H5file merged_sel
 
 ```
 
-A directory called 'screen_plots' would be created under the current directory, with the screen images saved for each antenna.
+A directory called 'screen_plots' would be created under the current directory, with the screen images saved for each antenna. Here are two examples for the antenna DE601HBA
+
+
+![Here is an example for DE601HBA_screen_wcs.png:](examples/DE601HBA_screen_wcs.png)
+![Here is an example for DE601HBA_screen.png:](examples/DE601HBA_screen.png)
 
 3) If you want to drop some of your directions:
 
