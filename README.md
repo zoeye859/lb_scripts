@@ -15,7 +15,7 @@ This script can
 python3 Plot_dirandscreen.py --H5file merged_FILE_name.h5 --RA 242.75 --DEC 54.95
 
 ```
-where --RA and --DEC is the field centre, so you don’t have to feed a .ms file or a screen .fits file.
+where `--RA` and `--DEC` is the field centre, so you don’t have to feed a .ms file or a screen .fits file.
 
 You will get two direction plots, one in degrees, one in wcs framework
 
@@ -29,6 +29,11 @@ You will get two direction plots, one in degrees, one in wcs framework. Here is 
 
 
 ![Here is an example for Direction_plot_wcs.png:](examples/Direction_plot_wcs.png)
+
+```diff
+- The inner light blue square stands for the 2.5deg (DEC) box, since screen would be made 1.5 times larger (outter darker blue square), so don't worry too much if your direction is close to the edge of the light blue square. You only need to worry when some of your directions are close to the edge or outside of the outter darker blue square.
+```
+
 ![Here is an example for Direction_plot_deg.png:](examples/Direction_plot_deg.png)
 
 2) After making your screen:
@@ -42,7 +47,12 @@ A directory called 'screen_plots' would be created under the current directory, 
 
 
 ![Here is an example for DE601HBA_screen_wcs.png:](examples/DE601HBA_screen_wcs.png)
+
+This image is made with `--plot True`
+
 ![Here is an example for DE601HBA_screen.png:](examples/DE601HBA_screen.png)
+
+This image is made with `--plot_pix True`
 
 3) If you want to drop some of your directions:
 
