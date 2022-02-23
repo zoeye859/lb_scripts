@@ -321,7 +321,7 @@ def plot_directions_deg(h5file, centre_RA, centre_DEC, boxwidth):
     ax.set_aspect(1)
     ax.invert_xaxis()
     plt.savefig(dir_path + 'Direction_plot_deg.png', bbox_inches='tight')
-    plt.show()
+    #plt.show()
 
 def plot_directions_wcs(h5file, centre_RA, centre_DEC, boxwidth):
     '''
@@ -350,7 +350,7 @@ def plot_directions_wcs(h5file, centre_RA, centre_DEC, boxwidth):
     ax.add_patch(rect2)
     ax.set_aspect(1)
     plt.savefig(dir_path + 'Direction_plot_wcs.png')
-    plt.show()
+    #plt.show()
 
 def select_direction2remove(dir_num, remove_num, random_t = True, remove_list_manual = []):
     '''
