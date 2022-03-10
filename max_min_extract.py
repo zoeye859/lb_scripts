@@ -37,12 +37,21 @@ def init_d(keylist,dir_sum):
         d[i] = [math.nan]*(dir_sum+1)
     return d
 
-PATH = '/net/rijn2/data2/Haoyang/ALICE/selfcal_1b1/fits_collection_by_number'
-save_PATH = '/net/rijn2/data2/Haoyang/ALICE/selfcal_1b1/'
+#PATH = '/net/rijn2/data2/Haoyang/ALICE/selfcal_1b1/fits_collection_by_number'
+PATH = str(Path().absolute()).split("\/")[0] # Directory of current working directory
+save_PATH = PATH + '/plot_png/'
 markers = ['o', 'v', '^', '<', '>', 's', 'p', 'P', '*', 'X', 'D']
 keylist = ['dir_num', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-
 dir_sum = 100
+
+isExist = os.path.exists(save_PATH)
+if not isExist:
+    # Create a new directory because it does not exist
+    os.makedirs(save_PATH)
+    print("The new directory noise_png is created!")
+
+
+
 d = init_d(keylist, dir_sum)
 for i in range(1,dir_sum+1):
     print (i)
