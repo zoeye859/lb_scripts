@@ -1,9 +1,9 @@
 #python 3
 # Author: Haoyang Ye
-
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import argparse
 
 PATH = str(Path().absolute()).split("\/")[0] # Directory of current working directory
 save_PATH = PATH + '/data/'
@@ -14,7 +14,7 @@ def choose_h5(num):
     else:
         return 4
 
-def dir_filter(max_min_fits_file, decrease_ratio_file, ):
+def dir_filter(max_min_fits_file, decrease_ratio_file):
     df1 = pd.read_hdf('max_min_fits.h5')
     df2 = pd.read_hdf('decrease_ratio.h5')
     df1 = df1.rename(columns={"0": "C0", "1": "C1", "2": "C2", "3": "C3", "4": "C4", "5": "C5", "6": "C6", "7": "C7", "8": "C8", "9": "C9"}, errors="raise")
@@ -44,3 +44,5 @@ def dir_filter(max_min_fits_file, decrease_ratio_file, ):
     result.to_hdf(save_PATH + 'result.h5', key='result', mode='w')
     select.to_hdf(save_PATH + 'select.h5', key='select', mode='w')
     return h5_num_filter, dir_num_filter, Max_min_filter
+
+h5_num_filter, dir_num_filter, Max_min_filter = dir_filter(max_min_fits_file, decrease_ratio_file)
