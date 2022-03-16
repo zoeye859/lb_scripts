@@ -53,10 +53,11 @@ def splitevenodd(input_list):
 def split_cycle(input_list):
     split_output = []
     temp_idx = 0
-    for i in range(1,len(input_list)):
+    for i in range(1, len(input_list)):
         if input_list[i] == 1:
             split_output = split_output + [input_list[temp_idx:i]]
             temp_idx = i
+    split_output = split_output + [input_list[temp_idx:]]
     return split_output
 
 def dir_number(filename):
@@ -72,7 +73,7 @@ plot_png    = args['plot']
 
 PATH = str(Path().absolute()).split("\/")[0] # Directory of current working directory
 markers = ['o', 'v', '^', '<', '>', 's', 'p', 'P', '*', 'X', 'D']
-keylist = ['dir_num', '0', '1', '2', '3', '4', '5', '6', '7', '8']
+keylist = ['dir_num', '0', '1', '2', '3', '4', '5', '6', '7', '8','9']
 dir_sum = 100
 save_PATH = PATH + '/noise_png/'
 isExist = os.path.exists(save_PATH)
@@ -131,9 +132,10 @@ for filename in os.listdir(PATH):
             ax2.tick_params(axis='y', labelcolor=color1)
             for i in range(cycle_num):
                 ax1.scatter(i, float(decrease_ratio[i].strip('%')), marker = markers[i],label='Cycle ' + str(i))
-                ax2.scatter(i, ratio_table[int(dir_num)][i], marker = markers[i],label='Cycle ' + str(i))
+            for i in range(len(ratio_table)-1):
+                ax2.scatter(i, ratio_table[int(dir_num)][i+1], marker = markers[i],label='Cycle ' + str(i))
             ax1.plot([i for i in range(cycle_num)], [float(decrease_ratio[i].strip('%')) for i in range(cycle_num)], c='r')
-            ax2.plot([i for i in range(cycle_num)], [ratio_table[int(dir_num)][i] for i in range(cycle_num)], c='b')
+            ax2.plot([i for i in range(len(ratio_table)-1)], [ratio_table[int(dir_num)][i+1] for i in range(len(ratio_table)-1)], c='b')
             plt.title(str(dir_num) + '_' + ms_file)
             ax1.legend(bbox_to_anchor=(1.08,1), loc="upper left")
             plt.savefig(save_PATH + str(dir_num) + '_' + ms_file + '_percent.png', bbox_inches='tight', dpi=300)
