@@ -15,6 +15,7 @@ from regions import RectangleSkyRegion, RectanglePixelRegion
 from astropy.utils.data import get_pkg_data_filename
 from matplotlib.patches import Rectangle
 import pyregion
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 
 
 #PATH = str(Path().absolute()).split("\/")[0] # Directory of current working directory
@@ -131,19 +132,19 @@ def plot_fits_reg(reg_file_list, im_name, output_name):
                            color='white',
                            frameon=False,
                            size_vertical=1)
-
         ax.add_artist(scalebar)
     cbar = fig.colorbar(im, ax=axes.ravel().tolist(), cax = fig.add_axes([0.78, 0.02, 0.03, 0.94]))
     cbar.set_label(r'Flux density [mJy beam$^{-1}$]')
-    plt.subplots_adjust(left=0.12,
+    plt.subplots_adjust(left=0.40,
                     bottom=0.02, 
                     right=0.78, 
                     top=0.96, 
                     wspace=0, 
                     hspace=0.02)
-    plt.subplot_tool()
+    #plt.subplot_tool()
+    #plt.title('')
     plt.show()
-    plt.savefig(dir_green+'/' + str(output_name), dpi = 300)
+    plt.savefig(dir_path + str(output_name), dpi = 300)
     plt.close()
     
     
@@ -257,7 +258,6 @@ fits_header = hdul[0].header
 wcs = WCS(fits_header, naxis = 2)
 image_data = fits_data[0,0,:,:]
 size = len(image_data)
-
 centre_RA, centre_DEC = get_field_centre(fits_header)
 print ('The phase centre in degrees are: ', str(centre_RA) + ', ' + str(centre_DEC))
 
@@ -267,8 +267,14 @@ print ('The phase centre in degrees are: ', str(centre_RA) + ', ' + str(centre_D
 #plot_directions_wcs(centre_RA, centre_DEC, PATH+'region_full.npy', size, 'full_dir.png')
 #plot_directions_wcs(centre_RA, centre_DEC, PATH+'region_gy.npy', size, 'gy_dir.png')
 
-reg_file_list = ['random1.reg', 'random2.reg', 'random3.reg', 'random4.reg']
 im_name1 = '/net/rijn2/data2/Haoyang/ALICE/myPybdsf/image_en1_field_1asec_facetallblocks_applyfacetbeam-MFS-image-pb.fits' 
 im_name2 = '/net/rijn2/data2/Haoyang/ALICE/myPybdsf/image_full_ampphase_di_m.NS_shift.int.facetRestored.fits'
-plot_fits_reg(reg_file_list, im_name1, 'Comparison_1.png')
-plot_fits_reg(reg_file_list, im_name2, 'Comparison_2.png')
+im_name3 = '/net/rijn2/data2/Haoyang/ALICE/myPybdsf/en1_radio_image.fits'
+
+reg_file_list = ['random1.reg', 'random2.reg', 'random3.reg', 'random4.reg']
+reg_file_list2 = ['random1_6arcsec.reg', 'random2_6arcsec.reg', 'random3_6arcsec.reg', 'random4_6arcsec.reg']
+reg_file_list3 = ['random1_deep.reg', 'random2_deep.reg', 'random3_deep.reg', 'random4_deep.reg']
+
+plot_fits_reg(reg_file_list, im_name1, 'Comparison_1arcsec.png')
+plot_fits_reg(reg_file_list2, im_name2, 'Comparison_6arcsec.png')
+plot_fits_reg(reg_file_list3, im_name3, 'Comparison_deep.png')
